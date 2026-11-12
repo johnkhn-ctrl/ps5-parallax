@@ -1,0 +1,218 @@
+name: Build PS5 Popup Guard (ICU fix)
+run-name: PS5 13.00 - ICU fix (experimental)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-icu-fix.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parallax-popupguard-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Cross-compile browser on hosted Apple Silicon Mac (experimental)
+    runs-on: macos-15
+    timeout-minutes: 360
+    steps:
+      - name: Restore tested Popup Guard build kit (included below)
+        shell: bash
+        run: |
+          cat > /tmp/ps5-guard-kit.b64 <<'EMBEDDED_PATCH_DATA'
+          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
+          hX9+lHUBbWwKF+lmoT7UgQ9xHqaSmKsKNjstuX3SisVwBKCeuxu5jDIkhT/NonOBkfYS8qpUhBZ9+AsPkH/hEZQ2Lj4ZPG5+
+          OMMvhMgRvJEAci6XAeK36AYaNQw/qRENpuOJMBE2RnkDQKDXQT9OTEGQesIPw94bD7wnC33Jf0tmy8cLxhmDjbWKQyo5qOyR
+          yidPuaSKix/0wedd1YIP8b1qt3gd46q39PUGxjkNkKY6mOpEzrri2frFfSMXBOpVdTyoBDp5+vWCgahffKrTQOCXfCCg5tIh
+          +AvZ/915+7+ztP//EPt/c5H93+2uOuvL+fcX+FypGLQr1xq+yB6Qp+z/9np71v5fc5b2/59s/5/yn8BOYyMvGjQ9WtIN1IKU
+          zV5zMNd5Smu7KtUTQ8vpNEZZQvs4wGPoh1GY3bIM01pKLsCjZj8OwyKrv6bXxHrMpDIPm/uVrRcVs1xvr3gGkPJOjAoMH1PU
+          yGgmC8pQCTwy3xnzi9DmMrbxxcMZqQbazLpHmEhgPDuJq1xVrl4ZcVJJG9eVVTIa4lJNIptvvZzFUn4rF87M2fq41guDot/e
+          ywftC4WPyk9uUqqTH3ngOg1CniIiz0hBWtBBTMAuJ18LBLUgI3e+Y7NJIAuA50zx4QDBPi+/hODomgoQmd/owKgMHoK2IN1n
+          pu59DQcNzWRc2xFC5h5JNrPBMB/nFr22y+/qJ7tnZ3VaZ5UVKFm3/mb34LB+z+4QFtrPyjsAnjQVOMrhBXgPObrGQYxzN+JZ
+          vuVK5i/4lFG2tMmX9v8Xsf878/Z/e2n//yH2//oi+399dW050/9a9j+ZPV9mC/gT9v/q+vrGrP2/2t1Y2v9/rv1/EAsM1IJp
+          T5nxK3pz9ooK3P7r4CTPVkomtypy28JQYWuUjHk/xV10tXPcs6e5TGBy2dTHpM2WjivusDDDbXhoqlzxNBzcki+x++oA930N
+          wnR87aUzPkVlO/fskoL6+ks4QcvwkRUGsI8iHuduBsXgOw8GrjFNfFsTiM3Nm7nsveaKDSiAyTRZ5M/sMOXpFEH/Vr4qMfmM
+          FQkv9UfhFWB2N0Gbj/K+Vdftf4UTzLsyJ5SK8YsOOmMS4C82umVQ0MwjyfBiNtG00uJekqbTSaZbZGM+7uNO1juoeK8C0mh6
+          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
+          EMBEDDED_PATCH_DATA
+          python3 - <<'PY'
+          import base64, tarfile, io
+          from pathlib import Path
+          data = base64.b64decode(Path('/tmp/ps5-guard-kit.b64').read_text())
+          with tarfile.open(fileobj=io.BytesIO(data), mode='r:gz') as t:
+              for member in t.getmembers():
+                  safe = Path(member.name)
+                  if safe.is_absolute() or '..' in safe.parts or not member.isfile():
+                      raise SystemExit('Unsafe embedded filename')
+              t.extractall('.', filter='data')
+          print('Build-kit scripts extracted successfully')
+          PY
+
+      - name: Test popup blocker source patch
+        shell: bash
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Report build machine capacity
+        shell: bash
+        run: |
+          uname -a
+          df -h .
+          echo 'Upstream Parallax requires compiling WebKit and many libraries.'
+          echo 'Hosted macOS runners have very limited disk capacity.'
+
+      - name: Repair PS5 ICU installation path
+        shell: bash
+        run: |
+          python3 - <<'PATCH_BUILD_SCRIPT'
+          from pathlib import Path
+          p = Path('build-shadowmount-macos.sh')
+          s = p.read_text()
+          anchor = 'spikes/04-jsc/build.sh' + chr(10)
+          if s.count(anchor) != 1: raise SystemExit('Could not locate ICU build invocation')
+          insertion = 'python3 - <<\'PATCH_UPSTREAM_ICU\'\nfrom pathlib import Path\np = Path(\'spikes/04-jsc/build.sh\')\ns = p.read_text()\nold = \'--with-cross-build="$ICU/build-host" --prefix="$ICU_PS5" \' + chr(92)\nnew = \'--with-cross-build="$ICU/build-host" --prefix="$ICU_PS5" --libdir="$ICU_PS5/lib" \' + chr(92)\nif s.count(old) != 1: raise SystemExit(\'Unexpected upstream ICU configure line\')\ns = s.replace(old, new, 1)\nold = \'    ls -la "$ICU_PS5/lib"/*.a\'\nnew = \'    mkdir -p "$ICU_PS5/lib"\\n    for lib in libicuuc.a libicui18n.a libicudata.a; do\\n        if [ ! -f "$ICU_PS5/lib/$lib" ]; then\\n            for alt in "$ICU_PS5/lib64" "$ICU/build-ps5/lib"; do\\n                if [ -f "$alt/$lib" ]; then\\n                    cp "$alt/$lib" "$ICU_PS5/lib/$lib"\\n                    echo "Recovered $lib from $alt"\\n                    break\\n                fi\\n            done\\n        fi\\n    done\\n    for lib in libicuuc.a libicui18n.a libicudata.a; do\\n        if [ ! -s "$ICU_PS5/lib/$lib" ]; then\\n            echo "::error::Missing PS5 ICU library $lib" >&2\\n            find "$ICU" -type f -name \\\'*.a\\\' -print >&2 || true\\n            grep -E \\\'^(prefix|libdir|ENABLE_STATIC|ENABLE_SHARED)[[:space:]]*=\\\' "$ICU/build-ps5/Makefile" >&2 || true\\n            exit 1\\n        fi\\n    done\\n    ls -lah "$ICU_PS5/lib"/*.a\'\nif s.count(old) != 1: raise SystemExit(\'Unexpected upstream ICU archive check\')\ns = s.replace(old, new, 1)\np.write_text(s)\nprint(\'ICU prefix and archive diagnostics updated\')\nPATCH_UPSTREAM_ICU\n'
+          p.write_text(s.replace(anchor, insertion + chr(10) + anchor, 1))
+          print('Added PS5 ICU installation repair to browser build')
+          PATCH_BUILD_SCRIPT
+
+      - name: Build native PS5 homebrew title ZIP (not pkg)
+        shell: bash
+        run: |
+          set -o pipefail
+          bash ./build-shadowmount-macos.sh 2>&1 | tee build-log.txt
+
+      - name: Upload installable title ZIP only if cross-build succeeds
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallax-popupguard-fw13-shadowmount-title
+          path: parallax-browser/dist/parallax-browser-0.1.0-popupguard-fw13.zip
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload build log for debugging (success or failure)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallax-popupguard-build-log
+          path: build-log.txt
+          if-no-files-found: ignore
+          retention-days: 7
